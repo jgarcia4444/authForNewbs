@@ -1,11 +1,12 @@
 const express = require('express');
 const volleyball = require('volleyball');
 
-const bcrypt = require('bcryptjs');
 
 const app = express();
-
-const auth = require('./auth/index.js');
+// Make this require better
+// const auth = require('./auth/index.js');
+// const auth = require('./auth/index');
+const auth = require('./auth');
 
 app.use(volleyball);
 app.use(express.json());
