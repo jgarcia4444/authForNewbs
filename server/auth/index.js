@@ -31,6 +31,7 @@ router.post('/signup', (req, res, next) => {
             if (user) {
                 // There is already a user in the db with this username
                 const error = new Error('This username already exists. Please choose another one.');
+                res.status(409);
                 next(error);
             } else {
                 // hash the password
@@ -51,6 +52,7 @@ router.post('/signup', (req, res, next) => {
             // res.json({ user });
         });
     } else {
+        res.status(422);
         next(result.error);
     }
     

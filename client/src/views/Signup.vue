@@ -1,10 +1,13 @@
 <template>
     <section>
         <h1>Signup</h1>
+        <div v-if="signingUp" class="text-center">
+            <img src="../assets/Pacman.svg" />
+        </div>
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
             {{ errorMessage }}
         </div>
-        <form @submit.prevent="signup">
+        <form v-if="!signingUp" @submit.prevent="signup">
             <div class="form-group">
                 <label for="username">
                     Username
@@ -45,6 +48,7 @@
 
 <script>
 import Joi from 'joi';
+import { setTimeout } from 'timers';
 
 const SIGNUP_URL = 'http://localhost:3000/auth/signup';
 
@@ -56,6 +60,7 @@ const schema = Joi.object().keys({
 
 export default {
     data: () => ({
+        signingUp: false,
         errorMessage: '',
         user: {
             username: '',
@@ -74,27 +79,69 @@ export default {
     },
 
     methods: {
+
         signup() {
+
             this.errorMessage = '';
-            if (validUser()) {
+
+            if (this.validUser()) {
+
+                const body = {
+                    username: this.user.username,
+                    password: this.user.password,
+                };
+                this.signingUp = true;
                 // send data to server...
-                console.log('User is valid let\'s send it to the server');
+                fetch(SIGNUP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                    headers: {
+                        'content-type': 'application/json'
+                    }, 
+                }).then( (response) => {
+                    if (response.ok) {
+                        return response.json();
+                    } 
+                    return response.json().then( (error) => {
+                        throw new Error(error.message);
+                    });
+                }).then( () => {
+                    setTimeout(() => {
+                        this.signingUp = false;
+                        this.$router.push('/login');
+                    }, 1000);
+                    
+                }).catch( (error) => {
+                    setTimeout(() => {
+                        this.signingUp = false;
+                        this.errorMessage = error.message;
+                    }, 1000);
+                })
             }
         },
+
         validUser() {
             if (this.user.password != this.user.confirmPassword) {
+
                 this.errorMessage = 'Passwords must match.';
                 return false;
+
             }
 
             const result = Joi.validate(this.user, schema);
             if (result.error === null) {
+
                 return true;
+
             } 
             if (result.error.message.includes('username')) {
+
                 this.errorMessage = 'Username is invalid.';
+
             } else {
+
                 this.errorMessage = 'Password is invalid';
+
             }
             return false;
         },
