@@ -1,6 +1,7 @@
 const express = require('express');
 const volleyball = require('volleyball');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 // Make this require better
@@ -12,7 +13,7 @@ app.use(volleyball);
 app.use(cors({
     origin: 'http://localhost:8080',
     
-}))
+}));
 app.use(express.json());
 
 

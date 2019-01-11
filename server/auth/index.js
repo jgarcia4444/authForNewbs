@@ -1,6 +1,7 @@
 const express = require('express');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const db = require('../db/connection');
 const users = db.get('users');
@@ -57,5 +58,61 @@ router.post('/signup', (req, res, next) => {
     }
     
 });
+
+function respondError422(res, next) {
+    res.status(422);
+    const error = new Error('Unable to login');
+    next(error);
+}
+
+router.post('/login', (req, res, next) => {
+    const result = Joi.validate(req.body, schema);
+
+    if (result.error === null) {
+        users.findOne({
+            username: req.body.username,
+        }).then(user => {
+            if (user) {
+                // found the user in the db
+                //now compare the password
+                bcrypt.compare(req.body.password, user.password)
+                .then((result) => {
+                    if (result) {
+                        // they sent us the right password
+                        const payload = {
+                            _id: user._id,
+                            username: user.username,
+                        };
+
+                        jwt.sign(payload, process.env.TOKEN_SECRET, {
+                            expiresIn: '1d'
+                        },(err, token) => {
+                            if (err) {
+                                respondError422(res, next);
+                            } else {
+                                res.json({
+                                    token
+                                });
+                            }
+                        });
+
+                    } else {
+                        // They didn't send the right password
+                        respondError422(res, next);
+                    }
+                    res.json({result});
+                })
+            } else {
+                // username does not exist
+                // return error
+                respondError422(res, next);
+            }
+        })
+    } else {
+        respondError422(res, next);
+    }
+
+    
+})
 
 module.exports = router;
