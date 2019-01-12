@@ -100,7 +100,6 @@ router.post('/login', (req, res, next) => {
                         // They didn't send the right password
                         respondError422(res, next);
                     }
-                    res.json({result});
                 })
             } else {
                 // username does not exist
