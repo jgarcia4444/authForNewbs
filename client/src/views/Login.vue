@@ -25,7 +25,7 @@
         <button type="submit" class="btn btn-primary">Login</button>
     </form>
 </section>
-    
+
 </template>
 
 <script>
@@ -35,73 +35,74 @@ import { setTimeout } from 'timers';
 const LOGIN_URL = 'http://localhost:3000/auth/login';
 
 const schema = Joi.object().keys({
-    username: Joi.string().regex(/(^[a-zA-Z0-9_]+$)/).min(2).max(30).required(),
-    password: Joi.string().trim().min(10).required(),
-})
+  username: Joi.string().regex(/(^[a-zA-Z0-9_]+$)/).min(2).max(30)
+    .required(),
+  password: Joi.string().trim().min(10).required(),
+});
 
 export default {
-    data: () => ({
+  data: () => ({
 
-        errorMessage: '',
-        loggingIn: false,
+    errorMessage: '',
+    loggingIn: false,
 
-        user: {
-            username: '',
-            password: ''
-        },
-    }),
-    methods: {
-        login() {
-            this.errorMessage = '';
-            if (this.validUser()) {
-                this.loggingIn = true;
-                const body = {
-                    username: this.user.username,
-                    password: this.user.password
-                };
-                fetch(LOGIN_URL, {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify(body),
-                }).then((response) => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    return response.json().then((error) => {
-                        throw new Error(error.message);
-                    });
-                }).then((result) => {
-                    // It worked they entered valid info.
-                    // They are now logged in
-                    localStorage.token = result.token;
-                    setTimeout(() => {
-                        this.loggingIn = false;
-                        this.$router.push('/dashboard');
-                    }, 1000);
-                }).catch((error) => {
-                    setTimeout(() => {
-                        this.loggingIn = false;
-                        this.errorMessage = error.message;
-                    }, 1000);
-                });
-            }
-        },
-        validUser() {
-            const result = Joi.validate(this.user, schema);
-            if (result.error === null) {
-                return true;
-            }
-
-            if (result.error.message.includes('username')) {
-                this.errorMessage = 'Username is invalid';
-            } else {
-                this.errorMessage = 'Password is invalid';
-            }
-            return false;
-        }
+    user: {
+      username: '',
+      password: '',
     },
+  }),
+  methods: {
+    login() {
+      this.errorMessage = '';
+      if (this.validUser()) {
+        this.loggingIn = true;
+        const body = {
+          username: this.user.username,
+          password: this.user.password,
+        };
+        fetch(LOGIN_URL, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }).then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          return response.json().then((error) => {
+            throw new Error(error.message);
+          });
+        }).then((result) => {
+          // It worked they entered valid info.
+          // They are now logged in
+          localStorage.token = result.token;
+          setTimeout(() => {
+            this.loggingIn = false;
+            this.$router.push('/dashboard');
+          }, 1000);
+        }).catch((error) => {
+          setTimeout(() => {
+            this.loggingIn = false;
+            this.errorMessage = error.message;
+          }, 1000);
+        });
+      }
+    },
+    validUser() {
+      const result = Joi.validate(this.user, schema);
+      if (result.error === null) {
+        return true;
+      }
+
+      if (result.error.message.includes('username')) {
+        this.errorMessage = 'Username is invalid';
+      } else {
+        this.errorMessage = 'Password is invalid';
+      }
+      return false;
+    },
+  },
 };
 </script>
 
