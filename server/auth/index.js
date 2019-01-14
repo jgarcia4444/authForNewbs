@@ -15,6 +15,25 @@ const schema = Joi.object().keys({
     password: Joi.string().trim().min(10).required()
 });
 
+function createTokenSendResponse(user, res, next) {
+    const payload = {
+        _id: user._id,
+        username: user.username,
+    };
+
+    jwt.sign(payload, process.env.TOKEN_SECRET, {
+        expiresIn: '1d'
+    },(err, token) => {
+        if (err) {
+            respondError422(res, next);
+        } else {
+            res.json({
+                token
+            });
+        }
+    });
+}
+
 router.get('/', (req, res) => {
     res.json({
         message: "This is the router in work"
@@ -44,8 +63,7 @@ router.post('/signup', (req, res, next) => {
                     };
 
                     users.insert(newUser).then(insertedUser => {
-                        delete insertedUser.password;
-                        res.json(insertedUser);
+                        createTokenSendResponse(insertedUser, res, next);
                     });
 
                 });
@@ -65,6 +83,8 @@ function respondError422(res, next) {
     next(error);
 }
 
+
+
 router.post('/login', (req, res, next) => {
     const result = Joi.validate(req.body, schema);
 
@@ -79,22 +99,7 @@ router.post('/login', (req, res, next) => {
                 .then((result) => {
                     if (result) {
                         // they sent us the right password
-                        const payload = {
-                            _id: user._id,
-                            username: user.username,
-                        };
-
-                        jwt.sign(payload, process.env.TOKEN_SECRET, {
-                            expiresIn: '1d'
-                        },(err, token) => {
-                            if (err) {
-                                respondError422(res, next);
-                            } else {
-                                res.json({
-                                    token
-                                });
-                            }
-                        });
+                        createTokenSendResponse(user, res, next);
 
                     } else {
                         // They didn't send the right password
