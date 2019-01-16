@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const middlewares = require('./auth/middlewares');
 // Make this require better
 // const auth = require('./auth/index.js');
 // const auth = require('./auth/index');
@@ -15,11 +16,13 @@ app.use(cors({
     
 }));
 app.use(express.json());
+app.use(middlewares.checkTokenSetUser);
 
 
 app.get('/', (req, res) => {
     res.json({
-        message: 'Hello World'
+        message: 'Hello World',
+        user: req.user,
     });
 });
 
